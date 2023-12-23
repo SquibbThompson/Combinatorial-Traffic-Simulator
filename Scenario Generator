@@ -1,0 +1,133 @@
+def generate_binary_table(user_input):
+    # Convert user input to binary and pad to 8 bits
+    binary_input = bin(user_input)[2:].zfill(8)
+
+    # Create the table
+    table = []
+    for i in range(16):
+        # Generate the first four columns as binary representation of i
+        row = [int(x) for x in bin(15 - i)[2:].zfill(4)]
+        # Append the corresponding bit from the user input to each row
+        # Since we have only 8 bits, we repeat them for the 16 rows
+        row.append(int(binary_input[i % 8]))
+        table.append(row)
+
+    return table
+
+
+def generate_reflected_table(original_table):
+    # Create the reflected table
+    reflected_table = []
+    for row in original_table:
+        # Reverse the row to create a symmetrical reflection about the y-axis
+        reflected_row = row[::-1]
+        reflected_table.append(reflected_row)
+
+    return reflected_table
+
+
+def apply_xnor_gate(table1, table2):
+    # Apply XNOR gate to both tables
+    xnor_table = []
+    for row1, row2 in zip(table1, table2):
+        # XNOR for each element in the row (XNOR is True when inputs are the same)
+        xnor_row = [int(a == b) for a, b in zip(row1, row2)]
+        xnor_table.append(xnor_row)
+
+    return xnor_table
+
+
+def create_combined_xnor_table(original_table, xnor_table):
+    # Extract the rightmost column of the original table
+    rightmost_column = [row[-1] for row in original_table]
+
+    # Extract the rightmost column of the XNOR table
+    xnor_column = [row[-1] for row in xnor_table]
+
+    # Create a new table with the rightmost columns of the original and XNOR tables,
+    # and their XNOR result as the third column
+    combined_xnor_table = []
+    for original_bit, xnor_bit in zip(rightmost_column, xnor_column):
+        # Calculate XNOR for the two bits (XNOR is True when inputs are the same)
+        combined_xnor_bit = int(original_bit == xnor_bit)
+        combined_xnor_table.append([original_bit, xnor_bit, combined_xnor_bit])
+
+    return combined_xnor_table
+
+
+# Example usage
+example_input = 121  # User input (0 through 255)
+binary_table = generate_binary_table(example_input)
+reflected_binary_table = generate_reflected_table(binary_table)
+xnor_table = apply_xnor_gate(binary_table, reflected_binary_table)
+combined_xnor_table = create_combined_xnor_table(binary_table, xnor_table)
+
+#Analysis Section For Gridlock
+def display_movement(original_column):
+    grid = [list(original_column)]
+    total_moves = 0
+
+    while True:
+        new_row = grid[-1].copy()
+        moves_this_row = 0
+
+        for i in range(1, len(new_row)):
+            if new_row[i] == 1 and new_row[i-1] == 0:
+                new_row[i-1], new_row[i] = new_row[i], new_row[i-1]
+                moves_this_row += 1
+
+        if moves_this_row == 0:
+            break
+
+        total_moves += moves_this_row
+        grid.append(new_row)
+
+    return grid, total_moves
+
+
+# Add the movement analysis to the file output
+
+
+
+    ########Original Output
+
+
+def count_active_cells(table):
+    return sum(sum(row) for row in table)
+
+# Save the tables to a text file
+file_path = 'traffic_simulation_tables.txt'
+with open(file_path, 'w') as file:
+    file.write("Original Table:\n")
+    for row in binary_table:
+        file.write(f"{row}\n")
+    file.write(f"Number of Rows: {len(binary_table)}\n")
+    file.write(f"Active Cells (Cars): {count_active_cells(binary_table)}\n")
+
+    file.write("\nReflected Table:\n")
+    for row in reflected_binary_table:
+        file.write(f"{row}\n")
+
+    file.write("\nXNOR Table:\n")
+    for row in xnor_table:
+        file.write(f"{row}\n")
+    file.write(f"Number of Rows: {len(xnor_table)}\n")
+    file.write(f"Active Cells (Cars): {count_active_cells(xnor_table)}\n")
+
+    file.write("\nCombined XNOR Table:\n")
+    for row in combined_xnor_table:
+        file.write(f"{row}\n")
+
+    # Analyze and write the movement for the rightmost column of the binary table
+    file.write("\nMovement Analysis for Binary Table Rightmost Column:\n")
+    binary_movement_grid, binary_total_moves = display_movement([row[-1] for row in binary_table])
+    for step in binary_movement_grid:
+        file.write(f"{step}\n")
+    file.write(f"Total Moves: {binary_total_moves}\n")
+
+    # Analyze and write the movement for the rightmost column of the XNOR table
+    file.write("\nMovement Analysis for XNOR Table Rightmost Column:\n")
+    xnor_movement_grid, xnor_total_moves = display_movement([row[-1] for row in xnor_table])
+    for step in xnor_movement_grid:
+        file.write(f"{step}\n")
+    file.write(f"Total Moves: {xnor_total_moves}\n")
